@@ -1,29 +1,18 @@
 import React from 'react';
-import { storiesOf } from '@storybook/react';
+import ReactDOM from 'react-dom';
+import { PureTaskList } from './TaskList';
+import { withPinnedTasks } from './TaskList.stories';
 
-import TaskList from './TaskList';
-import { task, actions } from './Task.stories';
+it('renders pinned tasks at the start of the list', () => {
+    const div = document.createElement('div');
+    const events = { onPinTask: jest.fn(), onArchiveTask: jest.fn() };
+    ReactDOM.render(<PureTaskList tasks={withPinnedTasks} {...events} />, div);
 
-export const defaultTasks = [
-    { ...task, id: '1', title: 'Task 1' },
-    { ...task, id: '2', title: 'Task 2' },
-    { ...task, id: '3', title: 'Task 3' },
-    { ...task, id: '4', title: 'Task 4' },
-    { ...task, id: '5', title: 'Task 5' },
-    { ...task, id: '6', title: 'Task 6' },
-];
+    // We expect the task titled "Task 6 (pinned)" to be rendered first, not at the end
+    const lastTaskInput = div.querySelector(
+        '.list-item:nth-child(1) input[value="Task 6 (pinned)"]',
+    );
+    expect(lastTaskInput).not.toBe(null);
 
-export const withPinnedTasks = [
-    ...defaultTasks.slice(0, 5),
-    { id: '6', title: 'Task 6 (pinned)', state: 'TASK_PINNED' },
-];
-
-storiesOf('TaskList', module)
-// addDecorator可以在外面加一些装饰
-    .addDecorator(story => <div style={{ padding: '3rem' }}>{story()}</div>)
-    .add('default', () => <TaskList tasks={defaultTasks} {...actions} />)
-    .add('withPinnedTasks', () => (
-        <TaskList tasks={withPinnedTasks} {...actions} />
-    ))
-    .add('loading', () => <TaskList loading tasks={[]} {...actions} />)
-    .add('empty', () => <TaskList tasks={[]} {...actions} />);
+    ReactDOM.unmountComponentAtNode(div);
+});
